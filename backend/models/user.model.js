@@ -2,6 +2,8 @@ import mongoose from "mongoose";
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 
+//Here are schema is made .. what fields do we want and what methods
+
 const userSchema = new mongoose.Schema({
     email:{
         type:String,

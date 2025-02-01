@@ -1,3 +1,5 @@
+//Here all Routes are defined
+
 import { Router } from 'express';
 import * as userController from '../controllers/user.controller.js';
 import { body } from 'express-validator';

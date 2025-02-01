@@ -1,5 +1,5 @@
+//Here all the database connections are established
 import mongoose from "mongoose";
-
 
 console.log(process.env.MONGODB_URI);
 

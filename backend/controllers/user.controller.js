@@ -1,3 +1,5 @@
+//Here all the logic is made
+
 import userModel from '../models/user.model.js';
 import * as userService from '../services/user.service.js';
 import { validationResult } from 'express-validator';
