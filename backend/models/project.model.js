@@ -6,15 +6,14 @@ const projectSchema = new mongoose.Schema({
         required: true,
         lowercase: true,
         trim: true,
-        uniquie: [true, 'Project name must be unique'],
+        unique: true,  // Ensure unique constraint is applied correctly
     },
-    users:[
+    users: [
         {
             type: mongoose.Schema.Types.ObjectId,
             ref: 'user'
         }
     ]
-
 });
 
 const Project = mongoose.model('project', projectSchema);
