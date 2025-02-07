@@ -73,3 +73,20 @@ res.status(200).json({
         res.status(400).send(err.message);   
 }
 }
+
+export const getAllUsersController = async (req, res) => {
+
+    try {
+
+        const loggedInUsers = await userModel.findOne({
+            email: req.user.email
+        });
+        
+        const allUsers = await userService.getAllUsers({userId});
+        
+    } catch (err) {
+        console.error(err);
+        res.status(400).send(err.message);
+    }
+
+}
