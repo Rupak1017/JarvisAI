@@ -1,5 +1,6 @@
 import React, { useContext, useState } from 'react'
 import {UserContext} from '../context/user.context'
+import axios from '../config/axios'
 
 export const Home = () => {
 
@@ -9,8 +10,20 @@ export const Home = () => {
 
 function createProject(e) {
   e.preventDefault()
-  console.log('Creating project')
-  console.log(projectName)
+  
+  console.log({projectName})
+
+  axios.post('/projects/create', {
+    name: projectName,
+  })
+ .then(res => {
+   console.log(res)
+   setisModalOpen(false)
+ })
+ .catch(error => {
+   console.log(error)
+ })
+
 }
 
   return (

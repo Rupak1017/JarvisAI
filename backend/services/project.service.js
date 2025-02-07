@@ -5,7 +5,7 @@ export const createProject = async ({ name, userId }) => {
         throw new Error('Name is required');
     }
     if (!userId) {
-        throw new Error('User is required');
+        throw new Error('UserId is required');
     }
 
     // Check if a project with the same name already exists
@@ -27,3 +27,16 @@ export const createProject = async ({ name, userId }) => {
         throw error;
     }
 };
+
+
+export const getAllProjectByUserId = async ({userId}) => {
+    if(!userId) {
+        throw new Error('UserId is required');
+    }
+
+    const allUserProjects= await projectModel.find({
+        users: userId
+    })
+
+    return allUserProjects;
+}
