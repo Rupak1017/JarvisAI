@@ -1,25 +1,49 @@
-import React, { useState } from 'react'
-import {useNavigate, useLocation} from 'react-router-dom'
+import React, { useEffect, useState } from 'react';
+import { useNavigate, useLocation } from 'react-router-dom';
+import axios from '../config/axios';
 
 const Project = () => {
+  const location = useLocation();
+  const navigate = useNavigate();
+
+  const projectId = location.state?.project?._id || null; // Safe access to project ID
   const [isSidePanelOpen, setisSidePanelOpen] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [selectedUserId, setSelectedUserId] = useState([]);
+  const [selectedUserId, setSelectedUserId] = useState(new Set());
+  const [users, setUsers] = useState([]);
+ const [project, setproject] = useState(location.state.project);
 
-  // Dummy users list
-  const users = [
-    { id: '1', title: 'User One' },
-    { id: '2', title: 'User Two' },
-    { id: '3', title: 'User Three' },
-    { id: '4', title: 'User Four' },
-    { id: '5', title: 'User Five' },
-    { id: '6', title: 'User Six' },
-    { id: '7', title: 'User Seven' },
-    { id: '8', title: 'User Eight' },
+  // Fetch Users List
+  useEffect(() => {
+axios.get(`/projects/get-project/${location.state.project._id}`).then((res) => {
+  setproject(res.data.project);
+}).catch((err) => console.error("Error fetching project:", err));
 
-    
+    axios.get('/users/all')
+      .then((res) => setUsers(res.data.users))
+      .catch((err) => console.error("Error fetching users:", err));
 
-  ];
+
+  }, []);
+
+  // Function to Add Collaborators
+  function addCollaborators() {
+    if (!projectId) {
+      console.error("Project ID is missing!");
+      return;
+    }
+
+    axios.put('/projects/add-user', {
+      projectId: projectId,
+      users: Array.from(selectedUserId), // Convert Set to array
+    })
+    .then(res => {
+      console.log("Collaboration Success:", res.data);
+      setIsModalOpen(false);
+      setSelectedUserId(new Set()); // Reset selection
+    })
+    .catch(err => console.error("Error adding collaborators:", err));
+  }
 
   return (
     <main className='h-screen w-screen flex'>
@@ -45,7 +69,7 @@ const Project = () => {
             </div>
             <div className="max-w-60 ml-auto message flex flex-col p-2 bg-slate-50 w-fit rounded-md">
               <small className='opacity-65 text-xs'>example@gmail.com</small>
-              <p className='text-sm'> Lorem ipsum dolor sit amet.</p>
+              <p className='text-sm'> Lorem ipsum dolor sit amet Lorem ipsum dolor sit amet..</p>
             </div>
           </div>
           <div className="inputField w-full flex">
@@ -57,21 +81,27 @@ const Project = () => {
         </div>
 
         <div className={`sidePanel w-full h-full flex flex-col gap-2 bg-slate-50 absolute transition-all ${isSidePanelOpen? 'translate-x-0' : '-translate-x-full'} top-0`}>
-          <header className='flex justify-end px-3 bg-slate-100'>
+          <header className='flex justify-between items-center px-3 py-2 bg-slate-100'>
+        <h1 className=' text-lg font-semibold'>Collaborators</h1>
             <button className='p-2' onClick={() => setisSidePanelOpen(false)}>
               <i className="ri-close-fill"></i>
             </button>
           </header>
           <div className="users flex flex-col gap-2">
-            <div className="user cursor-pointer p-2 hover:bg-slate-200 flex gap-2 items-center">
-              <div className='aspect-square w-fit h-fit flex items-center justify-center rounded-full p-4 text-white bg-slate-600'>
-                <i className='ri-user-fill absolute'></i>
+            
+           { project.users && project.users.map((user, index) => {
+            return (
+              <div key={index} className="user cursor-pointer p-2 hover:bg-slate-200 flex gap-2 items-center">
+              <div className='aspect-square w-fit h-fit flex items-center justify-center rounded-full p-3 text-white bg-slate-600'>
+                <i className='ri-user-fill absolute text-sm'></i>
               </div>
-              <h1 className='font-semibold text-lg'>username</h1>
+              <h1 className=' text-lg'>{user.email}</h1>
             </div>
+            )
+           }) }
           </div>
         </div>
-
+        </section>
 
 {/* Modal for user list */}
 {isModalOpen && (
@@ -85,38 +115,31 @@ const Project = () => {
               </header>
               <div className="flex flex-col items-start gap-4">
                 <ul className="space-y-2 w-full max-h-60 overflow-auto">
-                  {users.map((user) => (
+                {users.map((user) => (
                     <li
-                      key={user.id}
-                      className={`flex items-center p-2 border rounded ${
-                        selectedUserId.indexOf(user.id) !== -1
-                          ? 'bg-gray-200' // Highlight selected users
-                          : 'hover:bg-gray-100'
-                      } cursor-pointer`}
+                      key={user._id} // Correct key usage
+                      className={`flex items-center p-2 border rounded ${selectedUserId.has(user._id) ? 'bg-gray-200' : 'hover:bg-gray-100'} cursor-pointer`}
                       onClick={() => {
-                        setSelectedUserId((prevSelected) =>
-                          prevSelected.includes(user.id)
-                            ? prevSelected.filter((id) => id !== user.id) // Remove if already selected
-                            : [...prevSelected, user.id] // Add if not selected
-                        );
+                        setSelectedUserId((prev) => {
+                          const newSelection = new Set(prev);
+                          if (newSelection.has(user._id)) {
+                            newSelection.delete(user._id);
+                          } else {
+                            newSelection.add(user._id);
+                          }
+                          return newSelection;
+                        });
                       }}
                     >
                       <i className="ri-user-fill text-xl mr-2"></i>
-                      {user.title}
+                      {user.email}
                     </li>
                   ))}
                 </ul>
-                {selectedUserId.length > 0 && (
-                  <p className="text-sm text-gray-600">
-                    Selected user IDs: {selectedUserId.join(', ')}
-                  </p>
-                )}
+              
                 <button
                   className="bg-slate-950 text-white py-2 px-6 rounded hover:bg-slate-800"
-                  onClick={() => {
-                    console.log('Selected Users:', selectedUserId);
-                    setIsModalOpen(false); // Close modal after selection
-                  }}
+                onClick={addCollaborators}
                 >
                   Add Collaborator
                 </button>
@@ -124,7 +147,7 @@ const Project = () => {
             </div>
           </div>
         )}
-      </section>
+  
     </main>
   )
 }
