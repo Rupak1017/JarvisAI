@@ -1,6 +1,9 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useContext } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import axios from '../config/axios';
+import { initializeSocket, receiveMessage,sendMessage } from '../config/socket';
+import { UserContext } from '../context/user.context';
+
 
 const Project = () => {
   const location = useLocation();
@@ -12,9 +15,22 @@ const Project = () => {
   const [selectedUserId, setSelectedUserId] = useState(new Set());
   const [users, setUsers] = useState([]);
  const [project, setproject] = useState(location.state.project);
+const [message, setMessage] = useState('')
+const { user } = useContext(UserContext);
+
+
 
   // Fetch Users List
   useEffect(() => {
+
+    // Initialize Socket
+    initializeSocket(project._id);
+
+receiveMessage('project-message',data=>{
+  console.log("Received Message:", data);
+})
+
+
 axios.get(`/projects/get-project/${location.state.project._id}`).then((res) => {
   setproject(res.data.project);
 }).catch((err) => console.error("Error fetching project:", err));
@@ -45,6 +61,17 @@ axios.get(`/projects/get-project/${location.state.project._id}`).then((res) => {
     .catch(err => console.error("Error adding collaborators:", err));
   }
 
+ const send=()=>{
+  console.log( user);
+  
+  sendMessage('project-message', {
+    message,
+    sender:user._id,
+    
+})
+setMessage("")
+}
+
   return (
     <main className='h-screen w-screen flex'>
       <section className='relative flex flex-col h-full min-w-96 bg-slate-200'>
@@ -73,8 +100,13 @@ axios.get(`/projects/get-project/${location.state.project._id}`).then((res) => {
             </div>
           </div>
           <div className="inputField w-full flex">
-            <input className='p-2 px-4 border-none outline-none flex-grow' type="text" placeholder='Enter message' /> 
-            <button className='bg-slate-950 text-white px-5'>
+            <input
+            value={message}
+            onChange={ (e)=>setMessage(e.target.value)}
+            className='p-2 px-4 border-none outline-none flex-grow' type="text" placeholder='Enter message' /> 
+            <button 
+            onClick={send}
+            className='bg-slate-950 text-white px-5'>
               <i className="ri-send-plane-fill"></i>
             </button>
           </div>
