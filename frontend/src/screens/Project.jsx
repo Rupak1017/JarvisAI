@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useContext } from 'react';
+import React, { useEffect, useState, useContext, useRef } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import axios from '../config/axios';
 import { initializeSocket, receiveMessage,sendMessage } from '../config/socket';
@@ -9,97 +9,117 @@ const Project = () => {
   const location = useLocation();
   const navigate = useNavigate();
 
-  const projectId = location.state?.project?._id || null; // Safe access to project ID
-  const [isSidePanelOpen, setisSidePanelOpen] = useState(false);
+  const projectId = location.state?.project?._id || null;
+  const [isSidePanelOpen, setIsSidePanelOpen] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedUserId, setSelectedUserId] = useState(new Set());
   const [users, setUsers] = useState([]);
- const [project, setproject] = useState(location.state.project);
-const [message, setMessage] = useState('')
-const { user } = useContext(UserContext);
+  const [project, setProject] = useState(location.state.project);
+  const [message, setMessage] = useState('');
+  const { user } = useContext(UserContext);
+  const messageBox = useRef(null); // ✅ Use useRef() instead of createRef()
 
-
-
-  // Fetch Users List
   useEffect(() => {
-
     // Initialize Socket
     initializeSocket(project._id);
 
-receiveMessage('project-message',data=>{
-  console.log("Received Message:", data);
-})
+    receiveMessage('project-message', (data) => {
+      console.log('Received Message:', data);
+      appendIncomingMessage(data);
+    });
 
-
-axios.get(`/projects/get-project/${location.state.project._id}`).then((res) => {
-  setproject(res.data.project);
-}).catch((err) => console.error("Error fetching project:", err));
+    axios.get(`/projects/get-project/${projectId}`)
+      .then((res) => setProject(res.data.project))
+      .catch((err) => console.error('Error fetching project:', err));
 
     axios.get('/users/all')
       .then((res) => setUsers(res.data.users))
-      .catch((err) => console.error("Error fetching users:", err));
-
-
+      .catch((err) => console.error('Error fetching users:', err));
   }, []);
 
-  // Function to Add Collaborators
   function addCollaborators() {
     if (!projectId) {
-      console.error("Project ID is missing!");
+      console.error('Project ID is missing!');
       return;
     }
 
     axios.put('/projects/add-user', {
       projectId: projectId,
-      users: Array.from(selectedUserId), // Convert Set to array
+      users: Array.from(selectedUserId),
     })
-    .then(res => {
-      console.log("Collaboration Success:", res.data);
+    .then((res) => {
+      console.log('Collaboration Success:', res.data);
       setIsModalOpen(false);
-      setSelectedUserId(new Set()); // Reset selection
+      setSelectedUserId(new Set());
     })
-    .catch(err => console.error("Error adding collaborators:", err));
+    .catch((err) => console.error('Error adding collaborators:', err));
   }
 
- const send=()=>{
-  console.log( user);
-  
-  sendMessage('project-message', {
-    message,
-    sender:user._id,
-    
-})
-setMessage("")
-}
+  const send = () => {
+    sendMessage('project-message', {
+      message,
+      sender: user, 
+    });
+    appendOutgoingMessage(message);
+    setMessage('');
+  };
+
+  function appendIncomingMessage(messageObject) {
+    if (!messageBox.current) return; // ✅ Check if ref exists
+
+    const message = document.createElement('div');
+    message.classList.add('message', 'max-w-56', 'flex', 'flex-col', 'p-2', 'bg-slate-500');
+    message.innerHTML = `
+      <small class='opacity-65 text-xs'>${messageObject.sender.email}</small>
+      <p class='text-sm'>${messageObject.message}</p>
+    `;
+    messageBox.current.appendChild(message);
+    scrollToBottomTop();
+  }
+
+  function appendOutgoingMessage(message) {
+    if (!messageBox.current) return; // ✅ Check if ref exists
+
+    const newMessage = document.createElement('div');
+    newMessage.classList.add('message', 'max-w-56', 'flex', 'flex-col', 'p-2', 'bg-slate-500', 'ml-auto');
+    newMessage.innerHTML = `
+      <small class='opacity-65 text-xs'>${user.email}</small>
+      <p class='text-sm'>${message}</p>
+    `;
+    messageBox.current.appendChild(newMessage);
+    scrollToBottomTop();
+  }
+
+  function scrollToBottomTop() {
+    if (messageBox.current) {
+      messageBox.current.scrollTop = messageBox.current.scrollHeight; // ✅ No more null errors
+    }
+  }
 
   return (
-    <main className='h-screen w-screen flex'>
-      <section className='relative flex flex-col h-full min-w-96 bg-slate-200'>
-        <header className='flex justify-between items-center p-2 px-4 w-full bg-slate-100'>
+    <main className='h-screen w-screen flex '>
+      <section className='left relative flex flex-col h-screen min-w-96 bg-slate-300'>
+        <header className='flex justify-between items-center p-2 px-4 w-full bg-slate-100 absolute top-0 '>
           <button className='flex gap-2' onClick={() => setIsModalOpen(true)}>
             <i className='ri-add-fill mr-1'></i>
             <p>Add Collaborator</p>
           </button>
           <button
-            onClick={() => setisSidePanelOpen(!isSidePanelOpen)}
+            onClick={() => setIsSidePanelOpen(!isSidePanelOpen)}
             className='p-2'
           >
             <i className="ri-group-fill"></i>
           </button>
         </header>
 
-        <div className="conversation-area flex-grow flex flex-col">
-          <div className="message-box flex-grow flex flex-col gap-2 p-2">
-            <div className="max-w-60 message flex flex-col p-2 bg-slate-50 w-fit rounded-md">
-              <small className='opacity-65 text-xs'>example@gmail.com</small>
-              <p className='text-sm'> Lorem ipsum dolor sit amet. Lorem ipsum dolor sit amet consectetur.</p>
-            </div>
-            <div className="max-w-60 ml-auto message flex flex-col p-2 bg-slate-50 w-fit rounded-md">
-              <small className='opacity-65 text-xs'>example@gmail.com</small>
-              <p className='text-sm'> Lorem ipsum dolor sit amet Lorem ipsum dolor sit amet..</p>
-            </div>
+        <div className="conversation-area  pt-14 pb-10 flex-grow flex flex-col relative">
+
+        <div ref={messageBox} className="message-box flex-grow flex flex-col gap-2 p-2 overflow-y-auto" style={{ maxHeight: 'calc(100vh - 100px)' }}>
+  
+  
+          
           </div>
-          <div className="inputField w-full flex">
+          <div className="inputField w-full flex absolute bottom-0 ">
             <input
             value={message}
             onChange={ (e)=>setMessage(e.target.value)}
@@ -115,7 +135,7 @@ setMessage("")
         <div className={`sidePanel w-full h-full flex flex-col gap-2 bg-slate-50 absolute transition-all ${isSidePanelOpen? 'translate-x-0' : '-translate-x-full'} top-0`}>
           <header className='flex justify-between items-center px-3 py-2 bg-slate-100'>
         <h1 className=' text-lg font-semibold'>Collaborators</h1>
-            <button className='p-2' onClick={() => setisSidePanelOpen(false)}>
+            <button className='p-2' onClick={() => setIsSidePanelOpen(false)}>
               <i className="ri-close-fill"></i>
             </button>
           </header>

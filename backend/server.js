@@ -44,16 +44,21 @@ catch(error){
 
 
 io.on('connection', socket => {
+ socket.roomId = socket.project._id.toString();
+
     console.log('a user connected');
-    socket.join(socket.project._id);
+    socket.join(socket.roomId);
 
 socket.on('project-message', data=>{
     console.log('message received', data);
-    socket.broadcast.to(socket.project._id).emit('project-message', data);
+    socket.broadcast.to(socket.roomId).emit('project-message', data);
 });
 
-  socket.on('event', data => { /* … */ });
-  socket.on('disconnect', () => { /* … */ });
+  socket.on('disconnect', () => { 
+    
+    console.log('user disconnected');
+    socket.leave(socket.roomId);
+  });
 });
 
 
