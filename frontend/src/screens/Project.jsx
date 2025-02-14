@@ -4,6 +4,16 @@ import axios from '../config/axios';
 import { initializeSocket, receiveMessage, sendMessage } from '../config/socket';
 import { UserContext } from '../context/user.context';
 import Markdown from 'markdown-to-jsx';
+import { Light as SyntaxHighlighter } from 'react-syntax-highlighter'; // Import SyntaxHighlighter
+import { docco } from 'react-syntax-highlighter/dist/esm/styles/hljs'; // Style
+
+const SyntaxHighLighted = ({ children, language }) => {
+  return (
+    <SyntaxHighlighter language={language} style={docco}>
+      {children}
+    </SyntaxHighlighter>
+  );
+}
 
 const Project = () => {
 	const location = useLocation();
@@ -90,7 +100,15 @@ const Project = () => {
               {msg.sender._id === 'ai' ? 
               <div className='overflow-auto bg-slate-950 text-white rounded p-2'> 
 
-              <Markdown>{msg.message}</Markdown> 
+<Markdown options={{
+                        overrides: {
+                          code: {
+                            component: SyntaxHighLighted,
+                          },
+                        },
+                      }}>
+                        {msg.message}
+                      </Markdown>
               </div>
               
               : msg.message}</p>
