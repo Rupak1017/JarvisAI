@@ -5,15 +5,16 @@ import { initializeSocket, receiveMessage, sendMessage } from '../config/socket'
 import { UserContext } from '../context/user.context';
 import Markdown from 'markdown-to-jsx';
 import { Light as SyntaxHighlighter } from 'react-syntax-highlighter'; // Import SyntaxHighlighter
-import { docco } from 'react-syntax-highlighter/dist/esm/styles/hljs'; // Style
+import { atomOneDark } from 'react-syntax-highlighter/dist/esm/styles/hljs'; // Dark theme
 
 const SyntaxHighLighted = ({ children, language }) => {
   return (
-    <SyntaxHighlighter language={language} style={docco}>
+    <SyntaxHighlighter language={language} style={atomOneDark}>
       {children}
     </SyntaxHighlighter>
   );
 }
+
 
 const Project = () => {
 	const location = useLocation();
@@ -94,7 +95,10 @@ const Project = () => {
 					
           <div className="message-box flex-grow flex flex-col gap-2 p-2 overflow-y-auto" style={{ maxHeight: 'calc(100vh - 100px)' }}>
 						{messages.map((msg, index) => (
-              <div key={index} className={`message  flex flex-col p-2 bg-slate-500 ${msg.sender._id === 'ai' ? 'max-w-80' : 'ml-auto max-w-54'}`}>
+              <div key={index} className={`message  flex flex-col p-2 bg-slate-500 ${msg.sender._id === 'ai' ? 
+                
+                'max-w-80' : 'max-w-48'}  ${msg.sender._id == user._id.toString() && 'ml-auto '}`}
+            >
              <small className='opacity-65 text-xs'>{msg.sender.email}</small>
              <p className='text-sm'>
               {msg.sender._id === 'ai' ? 
