@@ -75,6 +75,28 @@ const Project = () => {
 		setMessage('');
 	}
 
+  function WriteAiMessage(message){
+const messageObject =JSON.parse(message)
+
+    return (
+      <div className='overflow-auto bg-slate-950 text-white rounded p-2'> 
+
+      <Markdown
+       children= {messageObject.text}
+      options={{
+       
+                              overrides: {
+                                code: 
+                                 SyntaxHighLighted,
+                                
+                              },
+                            }}
+                           />
+                    </div>
+      
+    )
+  }
+
 	return (
 		<main className='h-screen w-screen flex '>
 			<section className='left relative flex flex-col h-screen min-w-96 bg-slate-300'>
@@ -102,18 +124,10 @@ const Project = () => {
              <small className='opacity-65 text-xs'>{msg.sender.email}</small>
              <p className='text-sm'>
               {msg.sender._id === 'ai' ? 
-              <div className='overflow-auto bg-slate-950 text-white rounded p-2'> 
 
-<Markdown options={{
-                        overrides: {
-                          code: {
-                            component: SyntaxHighLighted,
-                          },
-                        },
-                      }}>
-                        {msg.message}
-                      </Markdown>
-              </div>
+              WriteAiMessage(msg.message) 
+
+  
               
               : msg.message}</p>
         
