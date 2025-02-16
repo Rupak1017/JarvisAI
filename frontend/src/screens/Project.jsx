@@ -52,18 +52,21 @@ const Project = () => {
       console.error('Project ID is missing!');
       return;
     }
-
+  
     axios.put('/projects/add-user', {
       projectId: projectId,
       users: Array.from(selectedUserId),
     })
     .then((res) => {
       console.log('Collaboration Success:', res.data);
+      // Assume res.data.project has the updated project info including users
+      setProject(res.data.project); 
       setIsModalOpen(false);
       setSelectedUserId(new Set());
     })
     .catch((err) => console.error('Error adding collaborators:', err));
   }
+  
 
   const send = () => {
     sendMessage('project-message', {
@@ -93,15 +96,20 @@ const Project = () => {
   return (
     <main className="h-screen w-screen flex">
       <section className="left relative flex flex-col h-screen w-full md:w-auto md:min-w-96 bg-slate-300">
-        <header className="flex justify-between items-center p-2 px-4 w-full bg-slate-100 absolute top-0">
-          <button className="flex gap-2" onClick={() => setIsModalOpen(true)}>
-            <i className="ri-add-fill mr-1"></i>
-            <p>Add Collaborator</p>
-          </button>
-          <button onClick={() => setIsSidePanelOpen(!isSidePanelOpen)} className="p-2">
-            <i className="ri-group-fill"></i>
-          </button>
-        </header>
+      <header className="flex justify-between items-center p-2 px-4 w-full bg-slate-100 absolute top-0 z-50">
+  <button className="flex gap-2" onClick={() => setIsModalOpen(true)}>
+    <i className="ri-add-fill mr-1"></i>
+    <p>Add Collaborator</p>
+  </button>
+  <button 
+    onClick={() => setIsSidePanelOpen(!isSidePanelOpen)} 
+    className="p-2"
+  >
+    <i className="ri-group-fill"></i>
+  </button>
+</header>
+
+
 
         {/* Increased mobile top padding (pt-20) to avoid collision with the header */}
         <div className="conversation-area pt-16 pb-5 md:pt-14 md:pb-10 flex-grow flex flex-col relative">
@@ -138,24 +146,24 @@ const Project = () => {
           </div>
         </div>
 
-        <div className={`sidePanel w-full h-full flex flex-col gap-2 bg-slate-50 absolute transition-all ${isSidePanelOpen ? 'translate-x-0' : '-translate-x-full'} top-0`}>
-          <header className="flex justify-between items-center px-3 py-2 bg-slate-100">
-            <h1 className="text-lg font-semibold">Collaborators</h1>
-            <button className="p-2" onClick={() => setIsSidePanelOpen(false)}>
-              <i className="ri-close-fill"></i>
-            </button>
-          </header>
-          <div className="users flex flex-col gap-2">
-            {project.users && project.users.map((user, index) => (
-              <div key={index} className="user cursor-pointer p-2 hover:bg-slate-200 flex gap-2 items-center">
-                <div className="aspect-square w-fit h-fit flex items-center justify-center rounded-full p-3 text-white bg-slate-600">
-                  <i className="ri-user-fill absolute text-sm"></i>
-                </div>
-                <h1 className="text-lg">{user.email}</h1>
-              </div>
-            ))}
-          </div>
+        <div className={`sidePanel w-full h-full flex flex-col gap-2 bg-slate-50 absolute transition-transform ${isSidePanelOpen ? 'translate-x-0 pointer-events-auto' : '-translate-x-full pointer-events-none'} top-0`}>
+  <header className="flex justify-between items-center px-3 py-2 bg-slate-100">
+    <h1 className="text-lg font-semibold">Collaborators</h1>
+    <button className="p-2" onClick={() => setIsSidePanelOpen(false)}>
+      <i className="ri-close-fill"></i>
+    </button>
+  </header>
+  <div className="users flex flex-col gap-2">
+    {project.users && project.users.map((user, index) => (
+      <div key={index} className="user cursor-pointer p-2 hover:bg-slate-200 flex gap-2 items-center">
+        <div className="aspect-square w-fit h-fit flex items-center justify-center rounded-full p-3 text-white bg-slate-600">
+          <i className="ri-user-fill absolute text-sm"></i>
         </div>
+        <h1 className="text-lg">{user.email}</h1>
+      </div>
+    ))}
+  </div>
+</div>
       </section>
 
       {/* Modal for user list */}
