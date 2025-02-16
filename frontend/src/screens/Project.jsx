@@ -6,6 +6,9 @@ import { UserContext } from '../context/user.context';
 import Markdown from 'markdown-to-jsx';
 import { Light as SyntaxHighlighter } from 'react-syntax-highlighter';
 import { atomOneDark } from 'react-syntax-highlighter/dist/esm/styles/hljs';
+import hljs from 'highlight.js';
+import 'highlight.js/styles/atom-one-dark.css';
+
 
 const SyntaxHighLighted = ({ children, language }) => {
   return (
@@ -29,12 +32,22 @@ const Project = () => {
   const [messages, setMessages] = useState([]); // new state for messages
   const { user } = useContext(UserContext);
 
+  const [fileTree, setFileTree] = useState({ })
+
+  const [currentFile, setCurrentFile] = useState(null)
+  const [openFiles, setOpenFiles] = useState([])
+
+
   useEffect(() => {
     // Initialize Socket
     initializeSocket(project._id);
 
     receiveMessage('project-message', (data) => {
-      console.log('Received Message:', data);
+     
+      const message = JSON.parse(data.message); // parse the message to JSON
+      if (message.fileTree) { 
+        setFileTree(message.fileTree)
+      }
       setMessages(prev => [...prev, data]); // update messages state
     });
 
@@ -92,6 +105,17 @@ const Project = () => {
       </div>
     )
   }
+  function saveFileTree(ft) {
+    axios.put('/projects/update-file-tree', {
+        projectId: project._id,
+        fileTree: ft
+    }).then(res => {
+        console.log(res.data)
+    }).catch(err => {
+        console.log(err)
+    })
+}
+
 
   return (
     <main className="h-screen w-screen flex">
@@ -165,6 +189,81 @@ const Project = () => {
   </div>
 </div>
       </section>
+
+      <section className="right bg-red-200 flex-grow h-full flex  ">
+ <div className="explorer h-full max-w-64 bg-slate-200 min-w-52 ">
+  <div className="file-tree w-full">
+   {
+    Object.keys(fileTree).map((file, index) => (
+      <button onClick={() =>
+       { setCurrentFile(file)
+        setOpenFiles([...new Set([...openFiles, file])])
+       }} key={index} className="tree-element cursor-pointer p-2 px-4 flex items-center gap-2 bg-slate-300 w-full ">
+      <p className=' font-semibold text-lg'>{file}</p>
+    </button>))
+
+   }
+  </div>
+ </div>
+
+ {currentFile && (
+      <div className="code-editor flex flex-col flex-grow h-full">
+      <div className="top flex">
+      {
+        openFiles.map((file, index) => (
+          <button key={index} onClick={()=>setCurrentFile(file)}
+            className={`open-file cursor-pointer p-2 px-4 flex items-center w-fit gap-2 bg-slate-300 ${currentFile === file ? 'bg-slate-400' : ''}`}>
+            <p className="font-semibold text-lg">{file}</p>
+            </button>
+          
+          
+      ))
+      
+      }
+      </div>
+      <div className="bottom flex flex-grow max-w-full shrink overflow-auto">
+                        {
+                            fileTree[ currentFile ] && (
+                                <div className="code-editor-area h-full overflow-auto flex-grow bg-slate-50">
+                                    <pre
+                                        className="hljs h-full">
+                                        <code
+                                            className="hljs h-full outline-none"
+                                            contentEditable
+                                            suppressContentEditableWarning
+                                            onBlur={(e) => {
+                                              const updatedContent = e.target.innerText;
+                                              const ft = {
+                                                ...fileTree,
+                                                [currentFile]: {
+                                                  ...fileTree[currentFile],
+                                                  content: updatedContent
+                                                }
+                                              };
+                                              setFileTree(ft);
+                                              saveFileTree(ft);
+                                            }}
+                                            
+                                            dangerouslySetInnerHTML={{ __html: hljs.highlight('javascript', fileTree[currentFile].content).value }}
+
+
+                                            style={{
+                                                whiteSpace: 'pre-wrap',
+                                                paddingBottom: '25rem',
+                                                counterSet: 'line-numbering',
+                                            }}
+                                        />
+                                    </pre>
+                                </div>
+                            )
+                        }
+                    </div>
+
+                </div>
+ )}
+
+      </section>
+
 
       {/* Modal for user list */}
       {isModalOpen && (
