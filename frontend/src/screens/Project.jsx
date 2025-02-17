@@ -11,6 +11,7 @@ import 'highlight.js/styles/atom-one-dark.css';
 import { getWebContainer } from '../config/webContainer';
 
 
+
 const SyntaxHighLighted = ({ children, language }) => {
   return (
     <SyntaxHighlighter language={language} style={atomOneDark}>
@@ -40,9 +41,18 @@ const Project = () => {
   const [ webContainer, setWebContainer ] = useState(null)
   const [ iframeUrl, setIframeUrl ] = useState(null)
   const [ runProcess, setRunProcess ] = useState(null)
+  const [isDirectoryOpen, setIsDirectoryOpen] = useState(true);
 
 
-
+  useEffect(() => {
+    const fileKeys = Object.keys(fileTree);
+    if (fileKeys.length > 0 && !currentFile) {
+      const firstFile = fileKeys[0];
+      setCurrentFile(firstFile);
+      setOpenFiles(prev => [...new Set([...prev, firstFile])]);
+    }
+  }, [fileTree, currentFile]);
+  
   useEffect(() => {
     // Initialize Socket
     initializeSocket(project._id);
@@ -55,16 +65,22 @@ const Project = () => {
     }
 
     receiveMessage('project-message', (data) => {
-     
-      const message = JSON.parse(data.message); // parse the message to JSON
-      console.log(message);
-      webContainer?.mount(message.fileTree)
-      
-      if (message.fileTree) { 
-        setFileTree(message.fileTree)
+      let parsedMessage;
+      try {
+        parsedMessage = JSON.parse(data.message);
+      } catch (err) {
+        parsedMessage = data.message;
+      }
+      console.log(parsedMessage);
+    
+      // If the parsed message contains a fileTree, mount it
+      if (typeof parsedMessage === 'object' && parsedMessage.fileTree) {
+        webContainer?.mount(parsedMessage.fileTree);
+        setFileTree(parsedMessage.fileTree);
       }
       setMessages(prev => [...prev, data]); // update messages state
     });
+    
 
     axios.get(`/projects/get-project/${projectId}`).then(res => {
       setProject(res.data.project)
@@ -212,20 +228,27 @@ const Project = () => {
       </section>
 
       <section className="right bg-red-200 flex-grow h-full flex  ">
- <div className="explorer h-full max-w-64 bg-slate-200 min-w-52 ">
-  <div className="file-tree w-full">
-   {
-    Object.keys(fileTree).map((file, index) => (
-      <button onClick={() =>
-       { setCurrentFile(file)
-        setOpenFiles([...new Set([...openFiles, file])])
-       }} key={index} className="tree-element cursor-pointer p-2 px-4 flex items-center gap-2 bg-slate-300 w-full ">
-      <p className=' font-semibold text-lg'>{file}</p>
-    </button>))
-
-   }
+ <div className="explorer h-full max-w-64 bg-slate-200 min-w-52">
+  <button 
+    onClick={() => setIsDirectoryOpen(!isDirectoryOpen)}
+    className="w-full flex items-center justify-between p-2 px-4 bg-slate-300 transition-all duration-300">
+    <p className="text-lg">Directory</p>
+    <i className={`ri-arrow-drop-${isDirectoryOpen ? 'up' : 'down'}-line`}></i>
+  </button>
+  <div className={`file-tree w-full overflow-hidden transition-all duration-300 ${isDirectoryOpen ? 'max-h-screen' : 'max-h-0'}`}>
+    {Object.keys(fileTree).map((file, index) => (
+      <button 
+        onClick={() => {
+          setCurrentFile(file);
+          setOpenFiles([...new Set([...openFiles, file])]);
+        }} 
+        key={index} 
+        className="tree-element cursor-pointer p-2 px-4 flex items-center gap-2 bg-slate-300 w-full">
+        <p className="font-semibold text-lg">{file}</p>
+      </button>
+    ))}
   </div>
- </div>
+</div>
 
 
       <div className="code-editor flex flex-col flex-grow h-full">
