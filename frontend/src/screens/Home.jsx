@@ -17,16 +17,17 @@ function createProject(e) {
   
   console.log({projectName})
 
-  axios.post('/projects/create', {
-    name: projectName,
+  axios.post('/projects/create', { name: projectName })
+  .then(res => {
+    console.log(res);
+    // Append the new project directly to the existing state
+    setProject(prevProjects => [...prevProjects, res.data]);
+    setisModalOpen(false);
   })
- .then(res => {
-   console.log(res)
-   setisModalOpen(false)
- })
- .catch(error => {
-   console.log(error)
- })
+  .catch(error => {
+    console.log(error);
+  });
+
 
 }
 
