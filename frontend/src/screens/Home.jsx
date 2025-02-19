@@ -14,6 +14,7 @@ export const Home = () => {
   const [projects, setProjects] = useState([]);
   const [newProject, setNewProject] = useState(null);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  const [animate, setAnimate] = useState(false);
 
   const { user, setUser } = useContext(UserContext);
   const navigate = useNavigate();
@@ -52,6 +53,14 @@ export const Home = () => {
       .catch((error) => console.error(error));
   }
 
+  // Trigger the animation 2 seconds after the component mounts.
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setAnimate(true);
+    }, 2000);
+    return () => clearTimeout(timer);
+  }, []);
+
   return (
     <div className="h-screen w-screen overflow-hidden flex flex-col">
       {/* Fixed Header */}
@@ -87,7 +96,6 @@ export const Home = () => {
         {/* Sidebar */}
         <SideNav projects={projects} isOpen={isSidebarOpen} toggleSidebar={toggleSidebar} setProjects={setProjects} />
 
-
         {/* Main Content Area */}
         <main className="flex-1 overflow-auto p-4">
           <div className="flex flex-col items-center text-center mt-[20vh]">
@@ -100,21 +108,44 @@ export const Home = () => {
               Ready to Collaborate?
             </p>
 
-            <button
+            {/* Animated Button */}
+            <motion.button
               onClick={() => setIsModalOpen(true)}
-              className="
-              mt-10 w-full max-w-md py-4 px-6 
-              bg-sky-950 text-white border border-black rounded-md shadow 
-              text-lg font-semibold 
-              flex items-center justify-center space-x-2
-              transition duration-300 group hover:bg-white hover:text-black
-            "
-          >
-            {/* SVG with Filter Invert to Change Color on Hover */}
-            <img src="/file.svg" alt="Arc Reactor" className="w-8 h-8 filter invert-0 group-hover:invert transition duration-300" />
+              className="relative overflow-hidden mt-10 w-full max-w-md py-4 px-6 border border-black rounded-md shadow text-lg font-semibold flex items-center justify-center space-x-2"
+            >
+              {/* Background overlay animates from left to right */}
+              <motion.div
+                initial={{ x: '-100%' }}
+                animate={animate ? { x: 0 } : { x: '-100%' }}
+                transition={{ delay: 1.2, duration: 1.2, ease: "easeInOut" }}
+                className="absolute inset-0 bg-sky-950"
+              />
 
-              <span>Create New Project</span>
-            </button>
+              <div className="relative flex items-center space-x-2">
+                {/* SVG Icon Animation */}
+                <motion.img
+                  src="/file.svg"
+                  alt="Arc Reactor"
+                  initial={{ rotate: 0, filter: "brightness(0)" }}
+                  animate={
+                    animate
+                      ? { rotate: 360, filter: "brightness(100%) drop-shadow(0px 0px 10px #ffffff)" }
+                      : {}
+                  }
+                  transition={{ delay: 2, duration: 1, ease: "easeInOut" }}
+                  className="w-8 h-8"
+                />
+
+                {/* Text Animation */}
+                <motion.span
+                  initial={{ color: "#000000" }}
+                  animate={animate ? { color: "#FFFFFF" } : {}}
+                  transition={{ delay: 1.2, duration: 1.2, ease: "easeInOut" }}
+                >
+                  Create New Project
+                </motion.span>
+              </div>
+            </motion.button>
 
             {newProject && (
               <motion.div
