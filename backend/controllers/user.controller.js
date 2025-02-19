@@ -43,14 +43,14 @@ export const loginController =async (req, res) => {
             return res.status(401).json({ errors: 'Invalid email or password' });
         }
     
-    const token =await user.generateJWT();
-    delete user._doc.password;
-
-    res.status(200).json({ user,token });
-    } catch (err) {
-        console.error(err);
-        res.status(400).send(err.message);
-    }
+     const token =await user.generateJWT();
+     delete user._doc.password;
+ 
+     res.status(200).json({ user,token });
+     } catch (err) {
+         console.error(err);
+         res.status(400).send(err.message);
+  }
      
 }
 
