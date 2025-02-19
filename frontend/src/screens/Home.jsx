@@ -85,11 +85,8 @@ export const Home = () => {
       {/* Main container: side nav + content */}
       <div className="flex-1 pt-16 flex">
         {/* Sidebar */}
-        <SideNav
-          projects={projects}
-          isOpen={isSidebarOpen}
-          toggleSidebar={toggleSidebar}
-        />
+        <SideNav projects={projects} isOpen={isSidebarOpen} toggleSidebar={toggleSidebar} setProjects={setProjects} />
+
 
         {/* Main Content Area */}
         <main className="flex-1 overflow-auto p-4">

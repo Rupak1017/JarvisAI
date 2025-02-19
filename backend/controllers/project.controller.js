@@ -118,3 +118,23 @@ export const updateFileTree = async (req, res) => {
     }
 
 }
+
+export const deleteProject = async (req, res) => {
+    try {
+        const { projectId } = req.params;
+
+        // Find the project to ensure it exists
+        const project = await projectModel.findById(projectId);
+        if (!project) {
+            return res.status(404).json({ message: "Project not found" });
+        }
+
+        // Delete the project
+        await projectModel.findByIdAndDelete(projectId);
+        return res.status(200).json({ message: "Project deleted successfully" });
+
+    } catch (err) {
+        console.error(err.message);
+        res.status(500).json({ error: "Failed to delete project" });
+    }
+};

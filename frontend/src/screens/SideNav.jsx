@@ -1,8 +1,22 @@
+import { useState } from 'react';
 import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
+import axios from '../config/axios';
 
-const SideNav = ({ projects, isOpen, toggleSidebar }) => {
+const SideNav = ({ projects, isOpen, toggleSidebar, setProjects }) => {
   const navigate = useNavigate();
+  const [activeDelete, setActiveDelete] = useState(null); // Track which project is in delete mode
+
+  // Delete Project Function
+  const handleDeleteProject = async (projectId) => {
+    try {
+      await axios.delete(`/projects/delete/${projectId}`);
+      setProjects((prev) => prev.filter((project) => project._id !== projectId));
+      setActiveDelete(null); // Reset icon after deletion
+    } catch (error) {
+      console.error("Failed to delete project:", error);
+    }
+  };
 
   return (
     <motion.aside
@@ -11,12 +25,12 @@ const SideNav = ({ projects, isOpen, toggleSidebar }) => {
       animate={{ x: isOpen ? 0 : -300, opacity: isOpen ? 1 : 0 }}
       transition={{ type: 'tween', duration: 0.3 }}
     >
-      {/* Fixed Top Section */}
+      {/* Sidebar Header */}
       <div>
         <div className="flex items-center justify-between mb-4">
           <div className="flex items-center">
             <i className="ri-rocket-line text-2xl mr-2"></i>
-            <span className="text-base font-semibold">Jarvis AI</span>
+            <span className="text-xl font-semibold">Jarvis AI</span>
           </div>
           <button onClick={toggleSidebar}>
             <i className="ri-close-line text-2xl"></i>
@@ -30,19 +44,33 @@ const SideNav = ({ projects, isOpen, toggleSidebar }) => {
         {projects.map((project) => (
           <motion.div
             key={project._id}
-            onClick={() => navigate('/project', { state: { project } })}
-            className="cursor-pointer p-3 border border-slate-300 rounded-md hover:bg-gray-100"
+            className="flex justify-between items-center cursor-pointer p-3 border border-slate-300 rounded-md hover:bg-gray-100"
             whileHover={{ scale: 1.02 }}
           >
-            <h2 className="font-medium">{project.name}</h2>
-            <div className="flex items-center text-sm text-gray-600">
-              <i className="ri-user-line mr-1"></i> {project.users.length} collaborators
+            {/* Project Info */}
+            <div onClick={() => navigate('/project', { state: { project } })}>
+              <h2 className="font-medium">{project.name}</h2>
+              <div className="flex items-center text-sm text-gray-600">
+                <i className="ri-user-line mr-1"></i> {project.users.length} collaborators
+              </div>
             </div>
+
+            {/* Toggleable Delete Button */}
+            <button
+              onClick={() => setActiveDelete(activeDelete === project._id ? null : project._id)}
+              className="text-gray-500 hover:text-black transition"
+            >
+              {activeDelete === project._id ? (
+                <i className="ri-delete-bin-line text-lg text-red-600 hover:text-red-800" onClick={() => handleDeleteProject(project._id)}></i>
+              ) : (
+                <i className="ri-more-fill text-lg"></i> // Three dots icon
+              )}
+            </button>
           </motion.div>
         ))}
       </div>
 
-      {/* Subtle Fixed Bottom Section */}
+      {/* Need Help Section */}
       <div className="mt-4 pb-2">
         <hr className="mb-3" />
         <button className="flex items-center text-sm text-gray-500 hover:text-black transition">
