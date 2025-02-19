@@ -177,10 +177,10 @@ const Project = () => {
           <div className="overflow-x-auto pb-2">
             <div className="flex space-x-2">
               <button
-                onClick={() => setMessage("@ai create me an express app with ES6 functions")}
+                onClick={() => setMessage("@ai create me a basic express server ")}
                 className="bg-gray-200 text-gray-800 px-3 py-1 rounded hover:bg-gray-300 transition whitespace-nowrap"
               >
-                @ai create me an express app with ES6 functions
+                @ai create me a basic express server 
               </button>
               <button
                 onClick={() => setMessage("@ai write me a JavaScript function for two-sum")}
@@ -327,8 +327,9 @@ const Project = () => {
                     saveFileTree(ft);
                   }}
                   dangerouslySetInnerHTML={{
-                    __html: hljs.highlight('javascript', fileTree[currentFile].file.contents).value
+                    __html: hljs.highlight('javascript', fileTree[currentFile]?.file?.contents || '').value
                   }}
+                  
                   className="outline-none"
                   style={{ whiteSpace: 'pre-wrap', overflowWrap: 'break-word', paddingBottom: '25rem' }}
                 />
