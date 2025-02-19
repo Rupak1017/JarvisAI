@@ -103,13 +103,16 @@ export const Home = () => {
             <button
               onClick={() => setIsModalOpen(true)}
               className="
-                mt-10 w-full max-w-md py-4 px-6 
-                bg-white text-black border border-black rounded-md shadow 
-                text-lg font-semibold 
-                flex items-center justify-center space-x-2
-                hover:bg-gray-100 transition
-              ">
-              <i className="ri-add-circle-line text-xl"></i>
+              mt-10 w-full max-w-md py-4 px-6 
+              bg-sky-950 text-white border border-black rounded-md shadow 
+              text-lg font-semibold 
+              flex items-center justify-center space-x-2
+              transition duration-300 group hover:bg-white hover:text-black
+            "
+          >
+            {/* SVG with Filter Invert to Change Color on Hover */}
+            <img src="/file.svg" alt="Arc Reactor" className="w-8 h-8 filter invert-0 group-hover:invert transition duration-300" />
+
               <span>Create New Project</span>
             </button>
 

@@ -29,7 +29,7 @@ const SideNav = ({ projects, isOpen, toggleSidebar, setProjects }) => {
       <div>
         <div className="flex items-center justify-between mb-4">
           <div className="flex items-center">
-            <i className="ri-rocket-line text-2xl mr-2"></i>
+          <img src="/file.svg" alt="Arc Reactor" className="w-11 h-10 mr-1 mt-1 filter invert" />
             <span className="text-xl font-semibold">Jarvis AI</span>
           </div>
           <button onClick={toggleSidebar}>
