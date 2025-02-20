@@ -1,12 +1,8 @@
 {
   "name": "backend",
   "version": "1.0.0",
+  "main": "server.js",
   "type": "module",
-  "scripts": {
-    "start": "node server.js",
-    "dev": "nodemon server.js",
-    "postinstall": "node -e \"const fs = require('fs'); console.log(fs.readdirSync('node_modules/mongodb/lib').join('\\n'));\""
-  },
   "dependencies": {
     "@google/generative-ai": "^0.21.0",
     "bcrypt": "^5.1.1",
@@ -18,13 +14,9 @@
     "highlight.js": "^11.11.1",
     "ioredis": "^5.4.2",
     "jsonwebtoken": "^9.0.2",
-    "mongodb": "6.2.0",
-    "mongoose": "8.0.3",
+    "mongoose": "^8.9.6",
     "morgan": "^1.10.0",
     "nodemon": "^3.1.9",
     "socket.io": "^4.8.1"
-  },
-  "engines": {
-    "node": "18.x"
   }
 }
