@@ -7,11 +7,17 @@ const Register = () => {
   const [email, setemail] = useState('');
   const [password, setpassword] = useState('');
   const [error, setError] = useState(''); // Added state for error message
+  const [isLoading, setIsLoading] = useState(false); // Loading state
   const { setUser } = useContext(UserContext);
   const navigate = useNavigate();
 
   function submitHandler(e) {
     e.preventDefault();
+    setIsLoading(true);
+    // Informing the user about the potential delay due to free cloud hosting
+    alert(
+      "Please note: Our backend is hosted on a free cloud server and may take a few seconds to wake up. Thank you for your patience while we process your registration."
+    );
     axios
       .post('/users/register', { email, password })
       .then(res => {
@@ -24,9 +30,8 @@ const Register = () => {
         console.error('Registration error response:', err.response);
         let errorMessage = 'Registration failed. Please try again.';
         if (err.response && err.response.data) {
-          // If backend sends plain text error message
+          // If backend sends a plain text error message
           if (typeof err.response.data === 'string') {
-            // Check if error indicates duplicate email (user already registered)
             if (
               err.response.data.includes('duplicate') ||
               err.response.data.includes('E11000')
@@ -36,7 +41,7 @@ const Register = () => {
               errorMessage = err.response.data;
             }
           }
-          // If error response is in JSON format with an "errors" field (from express-validator)
+          // If error response is in JSON format with an "errors" field
           else if (err.response.data.errors) {
             if (Array.isArray(err.response.data.errors)) {
               errorMessage = err.response.data.errors
@@ -48,7 +53,8 @@ const Register = () => {
           }
         }
         setError(errorMessage);
-      });
+      })
+      .finally(() => setIsLoading(false));
   }
 
   return (
@@ -89,8 +95,10 @@ const Register = () => {
           </div>
           <button
             type="submit"
-            className="w-full py-2 md:py-3 bg-blue-500 text-white rounded hover:bg-blue-600 transition duration-300"
+            disabled={isLoading}
+            className="w-full py-2 md:py-3 bg-blue-500 text-white rounded hover:bg-blue-600 transition duration-300 flex items-center justify-center"
           >
+            {isLoading && <i className="ri-loader-2-line animate-spin mr-2"></i>}
             Register
           </button>
         </form>
