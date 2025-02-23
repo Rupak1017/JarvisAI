@@ -7,12 +7,18 @@ const Login = () => {
   const [email, setemail] = useState('');
   const [password, setpassword] = useState('');
   const [error, setError] = useState(''); // Error state
+  const [isLoading, setIsLoading] = useState(false); // Loading state
   const { setUser } = useContext(UserContext);
   const navigate = useNavigate();
 
   // Function to handle form submission
   function submitHandler(e) {
     e.preventDefault();
+    setIsLoading(true);
+    // Professional alert to inform the user about the backend delay
+    alert(
+      "Please note: Our backend is hosted on a free cloud server and may take a few seconds to wake up. Thank you for your patience while we fetch your data."
+    );
     axios
       .post('/users/login', { email, password })
       .then(res => {
@@ -29,7 +35,8 @@ const Login = () => {
             ? err.response.data.message
             : 'Login failed. Please try again.';
         setError(errorMessage);
-      });
+      })
+      .finally(() => setIsLoading(false));
   }
 
   return (
@@ -70,8 +77,10 @@ const Login = () => {
           </div>
           <button
             type="submit"
-            className="w-full py-2 md:py-3 bg-blue-500 text-white rounded hover:bg-blue-600 transition duration-300"
+            disabled={isLoading}
+            className="w-full py-2 md:py-3 bg-blue-500 text-white rounded hover:bg-blue-600 transition duration-300 flex items-center justify-center"
           >
+            {isLoading && <i className="ri-loader-2-line animate-spin mr-2"></i>}
             Login
           </button>
         </form>
