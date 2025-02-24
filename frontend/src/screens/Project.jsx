@@ -237,26 +237,38 @@ const Project = () => {
           <button
   onClick={async () => {
     if (!webContainer) {
-      console.warn("WebContainer not available. This functionality is only enabled in a WebContainer environment.");
+      console.warn("WebContainer not available. This functionality is only enabled in environments that support it.");
+      setRunLoading(false);
       return;
     }
     setRunLoading(true);
-    // Only call mount if webContainer exists
-    await webContainer.mount(fileTree);
-    const installProcess = await webContainer.spawn("npm", ["install"]);
-    installProcess.output.pipeTo(
-      new WritableStream({ write(chunk) { console.log(chunk); } })
-    );
-    if (runProcess) runProcess.kill();
-    const tempRunProcess = await webContainer.spawn("npm", ["start"]);
-    tempRunProcess.output.pipeTo(
-      new WritableStream({ write(chunk) { console.log(chunk); } })
-    );
-    setRunProcess(tempRunProcess);
-    webContainer.on('server-ready', (port, url) => {
-      console.log(port, url);
-      setIframeUrl(url);
-    });
+    try {
+      await webContainer.mount(fileTree);
+      const installProcess = await webContainer.spawn("npm", ["install"]);
+      installProcess.output.pipeTo(
+        new WritableStream({
+          write(chunk) {
+            console.log(chunk);
+          }
+        })
+      );
+      if (runProcess) runProcess.kill();
+      const tempRunProcess = await webContainer.spawn("npm", ["start"]);
+      tempRunProcess.output.pipeTo(
+        new WritableStream({
+          write(chunk) {
+            console.log(chunk);
+          }
+        })
+      );
+      setRunProcess(tempRunProcess);
+      webContainer.on("server-ready", (port, url) => {
+        console.log(port, url);
+        setIframeUrl(url);
+      });
+    } catch (error) {
+      console.error("Error running process:", error);
+    }
     setRunLoading(false);
   }}
   className="bg-gray-800 text-white px-4 py-2 rounded hover:bg-gray-700 transition flex items-center"
