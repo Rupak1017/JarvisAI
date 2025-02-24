@@ -32,9 +32,11 @@ const UserMenu = ({ user, onLogout }) => {
         className="
           w-10 h-10 
           rounded-full 
-          bg-gray-200 
+          border
+          border-black
+          
           flex items-center justify-center 
-          font-bold text-gray-700
+          font-bold text-black
           hover:bg-gray-300
           transition
         "
