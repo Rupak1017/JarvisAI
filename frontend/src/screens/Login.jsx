@@ -1,4 +1,5 @@
 import React, { useContext, useState } from 'react';
+import { motion } from 'framer-motion';
 import { Link, useNavigate } from 'react-router-dom';
 import axios from '../config/axios';
 import { UserContext } from '../context/user.context';
@@ -8,28 +9,24 @@ const Login = () => {
   const [password, setpassword] = useState('');
   const [error, setError] = useState(''); // Error state
   const [isLoading, setIsLoading] = useState(false); // Loading state
+  const [showAlert, setShowAlert] = useState(false); // Alert modal state
   const { setUser } = useContext(UserContext);
   const navigate = useNavigate();
 
-  // Function to handle form submission
-  function submitHandler(e) {
-    e.preventDefault();
+  // Function to proceed with login after user confirms the alert modal
+  const handleAlertConfirm = () => {
+    setShowAlert(false);
     setIsLoading(true);
-    // Professional alert to inform the user about the backend delay
-    alert(
-      "Please note: Our backend is hosted on a free cloud server and may take a few seconds to wake up. Thank you for your patience while we fetch your data."
-    );
     axios
       .post('/users/login', { email, password })
-      .then(res => {
+      .then((res) => {
         console.log(res.data);
         localStorage.setItem('token', res.data.token);
         setUser(res.data.user);
         navigate('/');
       })
-      .catch(err => {
+      .catch((err) => {
         console.error('Login error response:', err.response);
-        // Try to extract the error message from the response; if not available, use a default message
         const errorMessage =
           err.response && err.response.data && err.response.data.message
             ? err.response.data.message
@@ -37,6 +34,13 @@ const Login = () => {
         setError(errorMessage);
       })
       .finally(() => setIsLoading(false));
+  };
+
+  // Function to handle form submission
+  function submitHandler(e) {
+    e.preventDefault();
+    // Instead of native alert, show custom modal
+    setShowAlert(true);
   }
 
   return (
@@ -91,6 +95,33 @@ const Login = () => {
           </Link>
         </p>
       </div>
+
+      {/* Custom Alert Modal */}
+      {showAlert && (
+        <>
+          {/* Blurred background overlay */}
+          <div className="fixed inset-0 z-40 bg-black bg-opacity-50 backdrop-blur-sm"></div>
+          <motion.div
+            initial={{ y: -100, opacity: 0 }}
+            animate={{ y: 0, opacity: 1 }}
+            transition={{ type: 'spring', stiffness: 200, damping: 25 }}
+            className="fixed top-0 inset-x-0 flex justify-center z-50"
+          >
+            <div className="bg-white rounded shadow p-3 w-11/12 max-w-xs">
+              <h3 className="text-md font-semibold mb-1">Please Note</h3>
+              <p className="text-gray-700 text-sm mb-3">
+                Our backend is hosted on a free cloud server and may take a few seconds to wake up.
+              </p>
+              <button
+                onClick={handleAlertConfirm}
+                className="w-full px-2 py-1 bg-blue-500 text-white rounded hover:bg-blue-600 focus:outline-none text-sm"
+              >
+                OK
+              </button>
+            </div>
+          </motion.div>
+        </>
+      )}
     </div>
   );
 };
