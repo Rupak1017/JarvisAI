@@ -234,35 +234,41 @@ const Project = () => {
             ))}
           </div>
           <div className="ml-auto flex gap-2">
-            <button
-              onClick={async () => {
-                setRunLoading(true);
-                await webContainer.mount(fileTree);
-                const installProcess = await webContainer.spawn("npm", ["install"]);
-                installProcess.output.pipeTo(
-                  new WritableStream({ write(chunk) { console.log(chunk); } })
-                );
-                if (runProcess) runProcess.kill();
-                const tempRunProcess = await webContainer.spawn("npm", ["start"]);
-                tempRunProcess.output.pipeTo(
-                  new WritableStream({ write(chunk) { console.log(chunk); } })
-                );
-                setRunProcess(tempRunProcess);
-                webContainer.on('server-ready', (port, url) => {
-                  console.log(port, url);
-                  setIframeUrl(url);
-                });
-                setRunLoading(false);
-              }}
-              className="bg-gray-800 text-white px-4 py-2 rounded hover:bg-gray-700 transition flex items-center"
-            >
-              {runLoading ? (
-                <svg className="animate-spin h-5 w-5 text-white" viewBox="0 0 24 24">
-                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path>
-                </svg>
-              ) : "Run"}
-            </button>
+          <button
+  onClick={async () => {
+    if (!webContainer) {
+      console.warn("WebContainer not available. This functionality is only enabled in a WebContainer environment.");
+      return;
+    }
+    setRunLoading(true);
+    // Only call mount if webContainer exists
+    await webContainer.mount(fileTree);
+    const installProcess = await webContainer.spawn("npm", ["install"]);
+    installProcess.output.pipeTo(
+      new WritableStream({ write(chunk) { console.log(chunk); } })
+    );
+    if (runProcess) runProcess.kill();
+    const tempRunProcess = await webContainer.spawn("npm", ["start"]);
+    tempRunProcess.output.pipeTo(
+      new WritableStream({ write(chunk) { console.log(chunk); } })
+    );
+    setRunProcess(tempRunProcess);
+    webContainer.on('server-ready', (port, url) => {
+      console.log(port, url);
+      setIframeUrl(url);
+    });
+    setRunLoading(false);
+  }}
+  className="bg-gray-800 text-white px-4 py-2 rounded hover:bg-gray-700 transition flex items-center"
+>
+  {runLoading ? (
+    <svg className="animate-spin h-5 w-5 text-white" viewBox="0 0 24 24">
+      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path>
+    </svg>
+  ) : "Run"}
+</button>
+
             <button
               onClick={async () => {
                 if (runProcess) {
