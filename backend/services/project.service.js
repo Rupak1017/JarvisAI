@@ -10,7 +10,8 @@ export const createProject = async ({ name, userId }) => {
     }
 
     // Check if a project with the same name already exists
-    const existingProject = await projectModel.findOne({ name });
+    const existingProject = await projectModel.findOne({ name, users: userId });
+
     if (existingProject) {
         throw new Error('Project with this name already exists');
     }
